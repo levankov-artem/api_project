@@ -3,3 +3,4 @@ flasgger
 flask_restful
 pyairtable
 gunicorn
+psycopg2
