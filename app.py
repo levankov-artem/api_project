@@ -62,7 +62,7 @@ def check_payment_status(qrId):
         'Authorization': f'Bearer {bearerToken}'
     }
     try:
-        response = requests.get(f'https://pay-test.raif.ru/api/sbp/v1/qr/{qrId}/payment-info', headers=headers)
+        response = requests.get(f'https://pay-test.raif.ru/api/sbp/v1/qr/${qrId}/payment-info', headers=headers)
         response.raise_for_status()  # This will raise an exception for HTTP error responses
         return jsonify(response.json())
     except requests.exceptions.HTTPError as http_err:
