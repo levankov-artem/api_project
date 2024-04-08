@@ -14,30 +14,14 @@ conn = psycopg2.connect(
 )
 
 with conn.cursor() as cursor:
-    # Step 1: Add a new temporary UUID column
     cursor.execute('''
-        ALTER TABLE orders
-        ADD COLUMN IF NOT EXISTS id_temp UUID;
+        CREATE TABLE IF NOT EXISTS orders (
+            id UUID PRIMARY KEY,
+            status TEXT NOT NULL,
+            QR_link TEXT NOT NULL,
+            QR_id TEXT NOT NULL
+        )
     ''')
-
-    # Step 2: Copy data from the old 'id' column to 'id_temp' (if the data is already in valid UUID format)
-    cursor.execute('''
-        UPDATE orders
-        SET id_temp = id::UUID;
-    ''')
-
-    # Step 3: Drop the old 'id' column
-    cursor.execute('''
-        ALTER TABLE orders
-        DROP COLUMN id;
-    ''')
-
-    # Step 4: Rename 'id_temp' to 'id'
-    cursor.execute('''
-        ALTER TABLE orders
-        RENAME COLUMN id_temp TO id;
-    ''')
-
     conn.commit()
 
 @app.route('/order', methods=['POST'])
