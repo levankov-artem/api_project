@@ -16,7 +16,7 @@ conn = psycopg2.connect(
 with conn.cursor() as cursor:
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY,
+            id TEXT PRIMARY KEY,
             status TEXT NOT NULL,
             QR_link TEXT NOT NULL,
             QR_id TEXT NOT NULL
@@ -68,20 +68,15 @@ def check_payment_status(qrId):
 
 @app.route('/order/<order_id>', methods=['GET'])
 def get_order_status(order_id):
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM orders WHERE id = %s', (order_id,))
-            result = cursor.fetchone()
-        
-        if result:
-            order_id, status, QR_link, QR_id = result
-            return jsonify({'id': order_id, 'status': status, 'QR_link': QR_link, 'QR_id': QR_id})
-        else:
-            return jsonify({'error': f'Order with id {order_id} not found'}), 404
-    except Exception as e:
-        # Rollback the transaction if an error occurs
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM orders WHERE id = %s', (order_id,))
+        result = cursor.fetchone()
+
+    if result:
+        order_id, status, QR_link, QR_id = result
+        return jsonify({'id': order_id, 'status': status, 'QR_link': QR_link, 'QR_id': QR_id})
+    else:
+        return jsonify({'error': f'Order with id {order_id} not found'}), 404
 
 @app.route('/orders', methods=['GET'])
 def get_all_orders():
