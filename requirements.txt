@@ -6,4 +6,3 @@ pyairtable
 gunicorn
 psycopg2
 requests
-json
