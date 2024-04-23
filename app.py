@@ -121,31 +121,6 @@ def delete_order(order_id):
             return jsonify({'message': f'Order with id {order_id} successfully deleted'}), 200
         else:
             return jsonify({'error': f'Order with id {order_id} not found'}), 404
-        
-@app.route('/create_receipt', methods=['POST'])
-def create_receipt():
-    post_data = request.json
-    post_url = "https://test.ecom.raiffeisen.ru/api/fiscal/v1/receipts/sell"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {os.getenv('BEARER_TOKEN')}"
-    }
-    try:
-        post_response = requests.post(post_url, headers=headers, json=post_data)
-        if post_response.status_code == 200:
-            post_response_data = post_response.json()
-            receipt_number = post_response_data['receiptNumber']
-            put_url = f"https://test.ecom.raiffeisen.ru/api/fiscal/v1/receipts/sell/{receipt_number}"
-            put_response = requests.put(put_url, headers=headers, json=post_data)
-            if put_response.ok:
-                return jsonify({"post_response": post_response_data, "put_response": put_response.json()}), 200
-            else:
-                return jsonify({"post_response": post_response_data, "put_error": put_response.text}), 500
-        else:
-            return jsonify({"error": "Failed to create receipt", "details": post_response.text}), 500
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Request failed: {e}")
-        return jsonify({"error": "Server connection failed", "details": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
