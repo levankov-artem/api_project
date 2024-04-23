@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import json
 import psycopg2
 import requests
 
@@ -123,6 +124,34 @@ def delete_order(order_id):
             return jsonify({'message': f'Order with id {order_id} successfully deleted'}), 200
         else:
             return jsonify({'error': f'Order with id {order_id} not found'}), 404
+        
+@app.route('/create_receipt', methods=['POST'])
+def create_and_update_receipt():
+    post_data = request.json
+    post_url = "https://test.ecom.raiffeisen.ru/api/fiscal/v1/receipts/sell"
+    put_url_template = "https://test.ecom.raiffeisen.ru/api/fiscal/v1/receipts/sell/{receipt_number}"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.getenv('BEARER_TOKEN')}"  # Make sure the BEARER_TOKEN is set in your environment
+    }
+
+    # Create Receipt with POST request
+    post_response = requests.post(post_url, headers=headers, json=post_data)
+    if post_response.status_code == 200:
+        post_response_data = post_response.json()
+        receipt_number = post_response_data['receiptNumber']  # Assuming response contains 'receiptNumber'
+
+        # Now update the receipt with PUT request
+        put_url = put_url_template.format(receipt_number=receipt_number)
+        put_response = requests.put(put_url, headers=headers, json=post_data)  # Assuming you use the same data or modify as needed
+
+        if put_response.ok:
+            return jsonify({"post_response": post_response_data, "put_response": put_response.json()}), 200
+        else:
+            return jsonify({"post_response": post_response_data, "put_error": put_response.text}), 500
+    else:
+        return jsonify({"error": "Failed to create receipt", "details": post_response.text}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
